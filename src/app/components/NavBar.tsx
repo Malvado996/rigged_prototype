@@ -28,13 +28,14 @@ export function NavBar() {
                 <div className="grid grid-cols-5 h-16">
                     {navItems.map((item) => {
                         const isActive = pathname.startsWith(item.href);
+                        const Icon = item.icon;
                         return (
                             <Link
                                 key={item.name}
                                 href={item.href}
                                 className="flex flex-col items-center justify-center gap-1"
                             >
-                                <item.icon
+                                <Icon
                                     className={`h-6 w-6 transition-colors ${isActive ? "text-primary" : "text-muted-foreground"
                                         }`}
                                 />
