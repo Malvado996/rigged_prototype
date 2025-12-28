@@ -29,7 +29,7 @@ export default function Home() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="bg-muted border-2 border-dashed border-border rounded-xl w-full h-64" /> {/* Photo placeholder */}
-            <p className="text-lg">Just pinned a new outing. Epic red rock lines ahead. Who's joining the convoy? 🛻🏜️</p>
+            <p className="text-lg">Just pinned a new outing. Epic red rock lines ahead. Whos joining the convoy? 🛻🏜️</p>
             <div className="flex flex-wrap gap-4">
               <Button>Upvote</Button>
               <Button variant="secondary">Comment</Button>
