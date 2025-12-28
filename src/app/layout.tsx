@@ -38,6 +38,7 @@ export default function RootLayout({
             text-foreground 
             min-h-screen 
             antialiased
+            safe-area-inset-pb
           `}
         >
           <Header />
