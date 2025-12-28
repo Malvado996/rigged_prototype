@@ -1,14 +1,37 @@
-import { Mountain } from 'lucide-react';
+"use client";
+
+import Link from "next/link";
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import { Button } from "@/components/ui/button";
 
 export function Header() {
     return (
-        <header className="bg-camelGreen border-b border-camelSand/20">
-            <div className="max-w-4xl mx-auto px-4 py-6 flex items-center justify-between">
+        <header className="fixed top-0 left-0 right-0 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50">
+            <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+                <Link href="/" className="text-2xl font-bold text-primary hover:opacity-90 transition-opacity">
+                    Rigged
+                </Link>
+
                 <div className="flex items-center gap-4">
-                    <Mountain className="w-10 h-10 text-camelSand" />
-                    <h1 className="text-3xl font-bold text-camelSand">Rigged</h1>
+                    <SignedOut>
+                        <SignInButton mode="modal">
+                            <Button variant="default" size="sm">
+                                Sign In
+                            </Button>
+                        </SignInButton>
+                    </SignedOut>
+
+                    <SignedIn>
+                        <UserButton
+                            afterSignOutUrl="/"
+                            appearance={{
+                                elements: {
+                                    avatarBox: "h-10 w-10",
+                                },
+                            }}
+                        />
+                    </SignedIn>
                 </div>
-                <p className="text-camelSand/80">Overland Community</p>
             </div>
         </header>
     );
