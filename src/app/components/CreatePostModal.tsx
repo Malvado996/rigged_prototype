@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { X, Camera, Image as ImageIcon, Truck, Users, MessageSquare, DollarSign } from "lucide-react";
+import { X, Camera, Users, MessageSquare, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { useUploadThing } from "@/lib/uploadthing";
+
+import { uploadPhoto } from "@/lib/supabase-storage";
 
 type PostType = "community" | "forum" | "marketplace";
 
@@ -20,64 +21,86 @@ export function CreatePostModal({ isOpen, onClose }: { isOpen: boolean; onClose:
     const [text, setText] = useState("");
     const [selectedType, setSelectedType] = useState<PostType>("community");
     const [files, setFiles] = useState<File[]>([]);
+    const [isUploading, setIsUploading] = useState(false);
 
-    const { startUpload, isUploading } = useUploadThing("imageUploader", {
-        onClientUploadComplete: (res) => {
-            console.log("Files uploaded!", res);
-            alert("Upload complete!");
+    const handlePost = async () => {
+        if (files.length === 0 && !text.trim()) {
+            alert("Add text or photos");
+            return;
+        }
+
+        setIsUploading(true);
+
+        try {
+            const urls = await Promise.all(
+                files.map((file) => uploadPhoto(file))
+            );
+
+            console.log("Uploaded URLs:", urls);
+
+            // TODO: Save to Supabase posts table here
+            alert("Photos uploaded to Supabase Storage! URLs in console 🔥");
             onClose();
-        },
-        onUploadError: (e) => {
-            alert("Upload failed: " + e.message);
-        },
-    });
+            window.location.reload(); // Refresh to see new post (temporary)
+        } catch (e) {
+            console.error("Upload failed:", e);
+            alert("Upload failed — check console");
+        } finally {
+            setIsUploading(false);
+        }
+    };
 
     if (!isOpen) return null;
 
     return (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-            <Card className="w-full max-w-2xl rounded-t-3xl max-h-[90vh] overflow-y-auto">
+            <Card className="w-full max-w-2xl rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto bg-card">
                 <div className="p-6">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-2xl font-bold">Create Post</h2>
-                        <button onClick={onClose}><X className="h-6 w-6" /></button>
+                        <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+                            <X className="h-6 w-6" />
+                        </button>
                     </div>
 
                     {/* Type Selector */}
                     <div className="grid grid-cols-3 gap-4 mb-6">
                         {(Object.keys(typeConfig) as PostType[]).map((type) => {
-                            const config = typeConfig[type];
-                            const Icon = config.icon;
+                            const { label, icon: Icon } = typeConfig[type];
                             const isSelected = selectedType === type;
                             return (
                                 <button
                                     key={type}
                                     onClick={() => setSelectedType(type)}
-                                    className={`p-4 rounded-xl border-2 transition-all ${isSelected ? "border-primary scale-105" : "border-border"
+                                    className={`p-4 rounded-xl border-2 transition-all flex flex-col items-center gap-2 ${isSelected ? "border-primary bg-primary/10" : "border-border"
                                         }`}
                                 >
-                                    <Icon className="h-8 w-8 mx-auto mb-2" />
-                                    <span className="text-sm font-medium">{config.label}</span>
+                                    <Icon className="h-8 w-8" />
+                                    <span className="text-sm font-medium">{label}</span>
                                 </button>
                             );
                         })}
                     </div>
 
-                    {/* Text */}
+                    {/* Text Input */}
                     <Textarea
                         placeholder="What's on your mind from the trail?"
                         value={text}
                         onChange={(e) => setText(e.target.value)}
-                        className="min-h-32 mb-6"
+                        className="min-h-32 mb-6 resize-none"
                     />
 
-                    {/* Photo Upload */}
+                    {/* Photo Upload Grid */}
                     <div className="mb-6">
                         <Label>Photos (up to 10)</Label>
                         <div className="mt-2 grid grid-cols-4 gap-4">
                             {files.map((file, i) => (
-                                <div key={i} className="relative aspect-square">
-                                    <img src={URL.createObjectURL(file)} alt="" className="rounded-lg object-cover w-full h-full" />
+                                <div key={i} className="relative aspect-square rounded-lg overflow-hidden">
+                                    <img
+                                        src={URL.createObjectURL(file)}
+                                        alt="preview"
+                                        className="object-cover w-full h-full"
+                                    />
                                     <button
                                         onClick={() => setFiles(files.filter((_, index) => index !== i))}
                                         className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1"
@@ -86,6 +109,7 @@ export function CreatePostModal({ isOpen, onClose }: { isOpen: boolean; onClose:
                                     </button>
                                 </div>
                             ))}
+
                             <label className="aspect-square border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-primary transition">
                                 <Camera className="h-8 w-8 text-muted-foreground" />
                                 <span className="text-xs mt-2 text-muted-foreground">Add Photo</span>
@@ -96,7 +120,7 @@ export function CreatePostModal({ isOpen, onClose }: { isOpen: boolean; onClose:
                                     className="hidden"
                                     onChange={(e) => {
                                         if (e.target.files) {
-                                            setFiles([...files, ...Array.from(e.target.files)]);
+                                            setFiles([...files, ...Array.from(e.target.files)].slice(0, 10));
                                         }
                                     }}
                                 />
@@ -108,15 +132,8 @@ export function CreatePostModal({ isOpen, onClose }: { isOpen: boolean; onClose:
                     <Button
                         size="lg"
                         className="w-full"
-                        disabled={isUploading || (!text.trim() && files.length === 0)}
-                        onClick={() => {
-                            if (files.length > 0) {
-                                startUpload(files);
-                            } else {
-                                alert("Posted! (stub)");
-                                onClose();
-                            }
-                        }}
+                        disabled={isUploading || (files.length === 0 && !text.trim())}
+                        onClick={handlePost}
                     >
                         {isUploading ? "Uploading..." : "Post"}
                     </Button>
