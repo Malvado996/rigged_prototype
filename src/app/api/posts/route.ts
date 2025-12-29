@@ -1,10 +1,9 @@
-import { supabase } from "../../../lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-    // Await auth() to get the resolved object
-    const { userId } = await auth();
+    const { userId } = await auth();  // ← await here resolves the promise
 
     if (!userId) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

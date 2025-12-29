@@ -18,6 +18,7 @@ const mockPosts: Post[] = [
         upvotes: 42,
         comments: 18,
         timeAgo: "2h ago",
+        created_at: "2025-12-28T12:00:00Z",
     },
     {
         id: 2,
@@ -30,6 +31,7 @@ const mockPosts: Post[] = [
         upvotes: 28,
         comments: 15,
         timeAgo: "5h ago",
+        created_at: "2025-12-28T09:00:00Z",
     },
     // Add more...
 ];

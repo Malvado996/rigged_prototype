@@ -38,13 +38,28 @@ export function CreatePostModal({ isOpen, onClose }: { isOpen: boolean; onClose:
 
             console.log("Uploaded URLs:", urls);
 
-            // TODO: Save to Supabase posts table here
-            alert("Photos uploaded to Supabase Storage! URLs in console 🔥");
+            // Save to DB
+            const response = await fetch("/api/posts", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    content: text,
+                    type: selectedType,
+                    images: urls,
+                }),
+            });
+
+            if (!response.ok) {
+                const err = await response.json();
+                throw new Error(err.error || "Failed to save post");
+            }
+
+            alert("Post saved to database! Refresh to see it 🔥");
             onClose();
-            window.location.reload(); // Refresh to see new post (temporary)
+            window.location.reload();
         } catch (e) {
-            console.error("Upload failed:", e);
-            alert("Upload failed — check console");
+            console.error(e);
+            alert("Failed: " + (e instanceof Error ? e.message : "Unknown error"));
         } finally {
             setIsUploading(false);
         }

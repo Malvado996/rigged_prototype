@@ -1,40 +1,36 @@
-"use client";
+import { supabase } from "@/lib/supabase";
+import { PostCard } from "../components/PostCard";
 
-import { useState } from "react";
-import { Plus } from "lucide-react";
+async function getPosts() {
+    const { data, error } = await supabase
+        .from("posts")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-import { CreatePostModal } from "../components/CreatePostModal";
+    if (error) {
+        console.error("Error fetching posts:", error);
+        return [];
+    }
 
-export default function TimelinePage() {
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    return data || [];
+}
+
+export default async function TimelinePage() {
+    const posts = await getPosts();
 
     return (
-        <div className="relative min-h-screen pb-40">  {/* pb-32 for bottom nav + button space */}
-            <div className="container mx-auto px-4 py-8">
-                <h1 className="text-3xl font-bold mb-8">Timeline</h1>
+        <div className="container mx-auto px-4 py-8">
+            <h1 className="text-3xl font-bold mb-8">Timeline</h1>
 
-                {/* Placeholder for feed — we'll fill with real posts soon */}
-                <div className="space-y-8">
-                    <p className="text-center text-muted-foreground text-lg">
-                        Your overland feed will explode once you post from the trail 🚧🛻
+            <div className="space-y-8">
+                {posts.length === 0 ? (
+                    <p className="text-center text-muted-foreground">
+                        No posts yet — be the first to post from the trail! 🛻
                     </p>
-                </div>
+                ) : (
+                    posts.map((post) => <PostCard key={post.id} post={post} />)
+                )}
             </div>
-
-            {/* Floating Create Button */}
-            <button
-                onClick={() => setIsModalOpen(true)}
-                className="fixed bottom-28 right-6 z-50 rounded-full bg-primary p-5 shadow-2xl transition-all hover:scale-110 active:scale-95"
-                aria-label="Create new post"
-            >
-                <Plus className="h-10 w-10 text-primary-foreground" />
-            </button>
-
-            {/* The Modal Itself */}
-            <CreatePostModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-            />
         </div>
     );
 }

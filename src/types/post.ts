@@ -11,4 +11,5 @@ export interface Post {
     upvotes: number;
     comments: number;
     timeAgo: string;
+    created_at: string;
 }

@@ -11,8 +11,15 @@ export function PostCard({ post }: { post: Post }) {
         images,
         upvotes,
         comments,
-        timeAgo,
+        created_at,
     } = post;
+
+    const timeAgo = new Date(created_at).toLocaleString("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+    });
 
     // Your card UI here — use the fields above
 
