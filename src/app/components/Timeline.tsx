@@ -1,40 +1,7 @@
-import { PostCard } from './PostCard';
-import { OutingCard } from './OutingCard';
-import { Post } from '../../types/post';
-
-// Mock data now typed
-const mockPosts: Post[] = [
-    {
-        id: 1,
-        type: "community",
-        userName: "Alex Rivera",
-        userAvatar: "A",
-        badge: "Convoy Leader",
-        content: "Who's joining the Moab convoy this weekend? Epic red rock lines ahead. Meeting at the trailhead Saturday 7am. 4 spots left in the group!",
-        images: [
-            "/placeholder1.jpg",
-            "/placeholder2.jpg",
-        ],
-        upvotes: 42,
-        comments: 18,
-        timeAgo: "2h ago",
-        created_at: "2025-12-28T12:00:00Z",
-    },
-    {
-        id: 2,
-        type: "forum",
-        userName: "Jordan Mecher",
-        userAvatar: "J",
-        badge: "How-To Hero",
-        content: "Best roof rack setup for Defender 110? Looking for recommendations on load rating, wind noise, and easy removal. Currently running Frontrunner but thinking about switching.",
-        images: [],
-        upvotes: 28,
-        comments: 15,
-        timeAgo: "5h ago",
-        created_at: "2025-12-28T09:00:00Z",
-    },
-    // Add more...
-];
+import { supabase } from "@/lib/supabase";
+import { PostCard } from "../components/PostCard";
+import { OutingCard } from "../components/OutingCard";
+import { Post, PostFromDB } from "@/types/post";
 
 const mockOuting = {
     id: 1,
@@ -50,13 +17,49 @@ const mockOuting = {
     ],
 };
 
-export function Timeline() {
+async function getPosts(): Promise<Post[]> {
+    const { data, error } = await supabase
+        .from("posts")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+    if (error || !data) {
+        console.error("Error loading posts:", error);
+        return [];
+    }
+
+    // Map DB shape to display shape
+    return data.map((dbPost: PostFromDB): Post => ({
+        id: dbPost.id,
+        userId: dbPost.user_id,
+        type: dbPost.type,
+        content: dbPost.content || "",
+        images: dbPost.images,
+        upvotes: dbPost.upvotes,
+        created_at: dbPost.created_at,
+    }));
+}
+
+export default async function TimelinePage() {
+    const posts = await getPosts();
+
     return (
-        <div className="space-y-8 mt-8">
-            <OutingCard outing={mockOuting} />
-            {mockPosts.map((post) => (
-                <PostCard key={post.id} post={post} />
-            ))}
+        <div className="container mx-auto px-4 py-8">
+            <h1 className="text-3xl font-bold mb-8">Timeline</h1>
+
+            <div className="space-y-8">
+                {/* Featured Outing Card */}
+                <OutingCard outing={mockOuting} />
+
+                {/* Real Posts from DB */}
+                {posts.length === 0 ? (
+                    <p className="text-center text-muted-foreground text-lg">
+                        No posts yet — be the first to share from the trail! 🛻
+                    </p>
+                ) : (
+                    posts.map((post) => <PostCard key={post.id} post={post} />)
+                )}
+            </div>
         </div>
     );
 }

@@ -32,14 +32,12 @@ export function CreatePostModal({ isOpen, onClose }: { isOpen: boolean; onClose:
         setIsUploading(true);
 
         try {
-            const urls = await Promise.all(
-                files.map((file) => uploadPhoto(file))
-            );
+            const urls = await Promise.all(files.map((file) => uploadPhoto(file)));
 
             console.log("Uploaded URLs:", urls);
 
             // Save to DB
-            const response = await fetch("/api/posts", {
+            const res = await fetch("/api/posts", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -49,17 +47,20 @@ export function CreatePostModal({ isOpen, onClose }: { isOpen: boolean; onClose:
                 }),
             });
 
-            if (!response.ok) {
-                const err = await response.json();
+            if (!res.ok) {
+                const err = await res.json();
                 throw new Error(err.error || "Failed to save post");
             }
 
-            alert("Post saved to database! Refresh to see it 🔥");
+            const { post } = await res.json();
+            console.log("Post saved to DB:", post);
+
+            alert("Post saved! Refresh to see it in the feed 🔥");
             onClose();
             window.location.reload();
         } catch (e) {
             console.error(e);
-            alert("Failed: " + (e instanceof Error ? e.message : "Unknown error"));
+            alert("Error: " + (e instanceof Error ? e.message : "Unknown"));
         } finally {
             setIsUploading(false);
         }

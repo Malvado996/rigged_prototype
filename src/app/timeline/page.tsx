@@ -1,36 +1,37 @@
 import { supabase } from "@/lib/supabase";
-import { PostCard } from "../components/PostCard";
+import { ClientTimeline } from "./ClientTimeline";
+import { Post, PostFromDB } from "@/types/post";
 
-async function getPosts() {
+async function getPosts(): Promise<Post[]> {
     const { data, error } = await supabase
         .from("posts")
         .select("*")
         .order("created_at", { ascending: false });
 
-    if (error) {
-        console.error("Error fetching posts:", error);
+    if (error || !data) {
+        console.error("Error loading posts:", error);
         return [];
     }
 
-    return data || [];
+    return data.map((dbPost: PostFromDB): Post => ({
+        id: dbPost.id,
+        userId: dbPost.user_id,
+        type: dbPost.type,
+        content: dbPost.content || "",
+        images: dbPost.images,
+        upvotes: dbPost.upvotes,
+        created_at: dbPost.created_at,
+    }));
 }
 
 export default async function TimelinePage() {
     const posts = await getPosts();
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-8 pb-32">
             <h1 className="text-3xl font-bold mb-8">Timeline</h1>
 
-            <div className="space-y-8">
-                {posts.length === 0 ? (
-                    <p className="text-center text-muted-foreground">
-                        No posts yet — be the first to post from the trail! 🛻
-                    </p>
-                ) : (
-                    posts.map((post) => <PostCard key={post.id} post={post} />)
-                )}
-            </div>
+            <ClientTimeline initialPosts={posts} />
         </div>
     );
 }

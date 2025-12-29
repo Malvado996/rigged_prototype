@@ -1,11 +1,11 @@
 import { supabase } from "@/lib/supabase";
-import { auth } from "@clerk/nextjs/server";
+import { currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-    const { userId } = await auth();  // ← await here resolves the promise
+    const user = await currentUser();
 
-    if (!userId) {
+    if (!user) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
         const { data, error } = await supabase
             .from("posts")
             .insert({
-                user_id: userId,
+                user_id: user.id,
                 type,
                 content: content || null,
                 images: images || [],
