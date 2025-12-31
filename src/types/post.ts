@@ -8,6 +8,7 @@ export interface PostFromDB {
     images: string[];
     upvotes: number;
     created_at: string;
+    is_pro: boolean;
 }
 
 export interface Post {
@@ -18,5 +19,6 @@ export interface Post {
     images: string[];
     upvotes: number;
     created_at: string;
-    // Computed fields (we'll add userName/avatar/badge later)
+    is_pro: boolean;  // ← Add this (optional for now)
+    // Later: userName, avatar, badge
 }

@@ -37,6 +37,7 @@ async function getPosts(): Promise<Post[]> {
         images: dbPost.images,
         upvotes: dbPost.upvotes,
         created_at: dbPost.created_at,
+        is_pro: dbPost.is_pro
     }));
 }
 
